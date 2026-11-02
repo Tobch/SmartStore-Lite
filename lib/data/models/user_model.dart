@@ -19,16 +19,27 @@ class UserModel {
       name: map['name'] ?? '',
       email: map['email'] ?? '',
       role: map['role'] ?? 'Staff',
-      defaultLocationId: map['defaultLocationId'],
+      defaultLocationId: map['defaultLocationId'] ?? map['default_location_id'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'email': email,
       'role': role,
       'defaultLocationId': defaultLocationId,
+    };
+  }
+
+  Map<String, dynamic> toDbMap() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'role': role,
+      'default_location_id': defaultLocationId,
     };
   }
 }

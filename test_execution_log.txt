@@ -1,0 +1,16 @@
+﻿========================================
+SmartStore Lite Automated Test Run
+Timestamp: 2026-11-02 23:06:15
+========================================
+00:00 +0: loading D:/asu/Fall_2026_and_Spring_2027/CSE431 - Mobile Programming/Project/smartstore_lite/test/all_unit_test.dart
+00:00 +0: D:/asu/Fall_2026_and_Spring_2027/CSE431 - Mobile Programming/Project/smartstore_lite/test/all_unit_test.dart: SmartStore Lite Comprehensive Test Suite EAN-13 Barcode Validation Test
+00:00 +1: D:/asu/Fall_2026_and_Spring_2027/CSE431 - Mobile Programming/Project/smartstore_lite/test/all_unit_test.dart: SmartStore Lite Comprehensive Test Suite Product Model Serialization Test
+00:00 +2: D:/asu/Fall_2026_and_Spring_2027/CSE431 - Mobile Programming/Project/smartstore_lite/test/all_unit_test.dart: SmartStore Lite Comprehensive Test Suite User Model toDbMap and fromMap Test
+00:00 +3: D:/asu/Fall_2026_and_Spring_2027/CSE431 - Mobile Programming/Project/smartstore_lite/test/all_unit_test.dart: SmartStore Lite Comprehensive Test Suite Stock Movement Ledger Model Test
+00:00 +4: D:/asu/Fall_2026_and_Spring_2027/CSE431 - Mobile Programming/Project/smartstore_lite/test/all_unit_test.dart: SmartStore Lite Comprehensive Test Suite Stock Calculation Ledger Logic Simulation
+00:00 +5: D:/asu/Fall_2026_and_Spring_2027/CSE431 - Mobile Programming/Project/smartstore_lite/test/all_unit_test.dart: SmartStore Lite Comprehensive Test Suite Transfer Rule Validation: Source and Destination must differ
+00:00 +6: D:/asu/Fall_2026_and_Spring_2027/CSE431 - Mobile Programming/Project/smartstore_lite/test/all_unit_test.dart: SmartStore Lite Comprehensive Test Suite App smoke test with MultiProvider
+00:00 +7: D:/asu/Fall_2026_and_Spring_2027/CSE431 - Mobile Programming/Project/smartstore_lite/test/widget_test.dart: Login screen basic smoke test
+00:00 +8: All tests passed!
+
+RESULT: SUCCESS

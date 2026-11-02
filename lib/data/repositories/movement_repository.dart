@@ -11,7 +11,6 @@ class MovementRepository {
   Future<int> calculateStock(String productId, String locationId) async {
     final db = await _dbHelper.database;
     
-    // FIX: Let Dart infer the type to prevent generic bracket parsing errors
     final result = await db.rawQuery('''
       SELECT 
         COALESCE(SUM(CASE WHEN to_location_id = ? THEN quantity ELSE 0 END), 0) - 
@@ -26,14 +25,27 @@ class MovementRepository {
     return 0;
   }
 
-  // Executes a transfer as ONE atomic database transaction, queueing it for sync
+  // Executes a movement as ONE atomic database transaction, queueing it for sync
   Future<void> recordTransfer(StockMovementModel movement) async {
     final db = await _dbHelper.database;
     
-    // Validate stock-out doesn't exceed available quantity
-    int currentStock = await calculateStock(movement.productId, movement.fromLocationId!);
-    if (movement.quantity > currentStock) {
-      throw Exception('Stock out cannot exceed available quantity');
+    // Validate stock-out doesn't exceed available quantity ONLY when stock leaves a location
+    if (movement.fromLocationId != null) {
+      int currentStock = await calculateStock(movement.productId, movement.fromLocationId!);
+      if (movement.quantity > currentStock) {
+        throw Exception('Stock out cannot exceed available quantity. (Available: $currentStock)');
+      }
+    }
+
+    // Ensure user exists in local SQLite to satisfy foreign key constraint
+    final userCheck = await db.query('users', where: 'id = ?', whereArgs: [movement.userId]);
+    if (userCheck.isEmpty) {
+      await db.insert('users', {
+        'id': movement.userId,
+        'name': 'Active User',
+        'email': 'user@smartstore.com',
+        'role': 'Staff',
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
 
     await db.transaction((txn) async {

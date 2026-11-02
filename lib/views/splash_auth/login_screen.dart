@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Icon(Icons.inventory_2, size: 80, color: Colors.blueAccent),
                   const SizedBox(height: 24),
-                  Text('SmartStore Lite', 
+                  Text('SmartStore Login', 
                     style: Theme.of(context).textTheme.headlineMedium,
                     textAlign: TextAlign.center,
                   ),
@@ -70,14 +70,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _passwordController.text.trim(),
                               );
                               if (success && mounted) {
-                                // Navigate to Dashboard
-                                // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const DashboardScreen()));
+                                Navigator.pushReplacementNamed(context, '/dashboard');
                               }
                             }
                           },
                     child: authVM.isLoading
                         ? const CircularProgressIndicator()
                         : const Text('LOGIN'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/register'),
+                    child: const Text('Don\'t have an account? Register'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/forgot_password'),
+                    child: const Text('Forgot Password?'),
                   ),
                 ],
               ),
