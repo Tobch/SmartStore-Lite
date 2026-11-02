@@ -17,7 +17,7 @@ dependencies:
   dio: ^5.4.3+1
 
   # Firebase Suite (Free Spark Plan)
-  firebase_core: ^3.1.0
+  firebase_core: ^3.15.2
   firebase_auth: ^5.1.0
   cloud_firestore: ^5.0.1
 
