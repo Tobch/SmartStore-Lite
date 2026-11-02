@@ -1,18 +1,106 @@
-# smartstore_lite
+<div align="center">
+  
+  # 📦 SmartStore Lite
+  
+  [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&pause=1000&color=2196F3&center=true&vCenter=true&width=600&lines=Smart+Inventory+Management;Offline-First+Architecture;Voice-Powered+Assistance;Material+3+Design)](https://git.io/typing-svg)
 
-A new Flutter project.
+  ![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)
+  ![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white)
+  ![Firebase](https://img.shields.io/badge/firebase-%23039BE5.svg?style=for-the-badge&logo=firebase)
+  ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
 
-## Getting Started
+</div>
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 📖 Project Overview
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+**SmartStore Lite** is a robust, offline-first mobile application designed for seamless inventory and warehouse management. Built to handle environments with unstable internet connections, it relies on a secure local SQLite database as its single source of truth, synchronizing with Firebase Cloud services in the background whenever a connection is available.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# SmartStore-Lite
+Rather than simply overwriting stock numbers, SmartStore Lite utilizes a **Ledger-Based Architecture**. Every stock change (IN, OUT, TRANSFER, ADJUSTMENT) is recorded as an immutable transaction. The current stock is dynamically calculated using a ledger formula (`SUM(IN) - SUM(OUT)`), ensuring perfect audit trails and preventing data corruption.
+
+### ✨ Core Features & Requirements Fulfilled
+
+| Feature | Description |
+| :--- | :--- |
+| 🎨 **Material 3 & Responsive** | Full dynamic theming (Light/Dark mode) with fluid typography. On tablets (landscape), the UI smoothly transitions into a dual-pane **Master-Detail view**. |
+| 🌐 **Smart Network & API** | Uses **Dio** with 4 custom interceptors (Logging, Auth, Cache, Error). Includes automatic Open Food Facts API integration via EAN-13 barcode lookup. |
+| 🗄️ **Secure Local Ledger** | Uses **sqflite** combined with SQLCipher for encrypted local storage. Implements strict ACID atomic transactions for all stock movements. |
+| ☁️ **Cloud Sync & Auth** | Secure **Firebase Authentication**. An offline queue stores pending changes and automatically syncs to Firestore upon network restoration. |
+| 🎙️ **Voice & Notifications** | Natural Language Processing! Ask *"How many Nutella in the warehouse?"* and the app will respond using **Text-to-Speech (TTS)**. Local notifications alert you immediately when stock drops below thresholds. |
+
+---
+
+## 🏗️ Architecture Highlight
+
+```mermaid
+graph TD;
+    A[User UI / Voice Input] --> B(ViewModels / Provider);
+    B --> C{Network Available?};
+    C -- Yes --> D[Dio Interceptors / API];
+    C -- No --> E[SQLite Local Ledger];
+    D --> F[Firebase Firestore Sync];
+    E --> F;
+```
+
+---
+
+## 🚀 Getting Started
+
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing.
+
+### Prerequisites
+
+*   [Flutter SDK](https://docs.flutter.dev/get-started/install) (Version 3.10.0 or higher)
+*   Android Studio / VS Code
+*   An Android Emulator or physical device
+
+### 1. Clone the Repository
+
+Open your terminal and run the following command to clone the project:
+
+```bash
+git clone https://github.com/your-username/smartstore-lite.git
+cd smartstore-lite
+```
+
+### 2. Install Dependencies
+
+Fetch all the required Flutter packages:
+
+```bash
+flutter clean
+flutter pub get
+```
+
+### 3. Run the App
+
+Launch the application on your connected device or emulator:
+
+```bash
+flutter run
+```
+
+*Note: If you are building for a final release APK, use `flutter build apk --release`.*
+
+---
+
+## 🧪 Testing
+
+SmartStore Lite includes automated test scripts to ensure data integrity and layout stability. To run the full test suite (Models, Database calculations, and UI smoke tests):
+
+**Using the provided script (Windows):**
+```powershell
+.\run_tests.ps1
+```
+
+**Using standard Flutter commands:**
+```bash
+flutter test
+```
+
+---
+
+<div align="center">
+  <i>Developed with ❤️ using Flutter.</i>
+</div>
