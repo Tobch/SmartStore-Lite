@@ -26,7 +26,7 @@ dependencies:
   csv: ^6.0.0
   intl: ^0.19.0
   uuid: ^4.4.0
-  lottie: ^3.1.2 # ADDED: For enterprise splash animation
+  lottie: ^3.1.2 
 
 dev_dependencies:
   flutter_test:
@@ -34,7 +34,7 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   mockito: ^5.4.4
   build_runner: ^2.4.9
-  flutter_launcher_icons: ^0.13.1 # ADDED: To generate unique app icon
+  flutter_launcher_icons: ^0.13.1 
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -48,4 +48,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-    - assets/animations/ # ADDED: Directory for lottie JSON files
+    - assets/animations/

@@ -186,6 +186,7 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'products_fab',
         child: const Icon(Icons.add),
         onPressed: () {
           Navigator.pushNamed(context, '/add_product');

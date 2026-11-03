@@ -70,6 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'dashboard_fab',
         icon: const Icon(Icons.add_rounded),
         label: const Text('New Movement', style: TextStyle(fontWeight: FontWeight.bold)),
         onPressed: () => Navigator.pushNamed(context, '/add_movement'),

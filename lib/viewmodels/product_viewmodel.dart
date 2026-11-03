@@ -30,11 +30,15 @@ class ProductViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     
+    // Pull remote updates from Firestore first so multi-device sync populates local storage
+    try {
+      await _syncService.pullRemoteChanges();
+    } catch (e) {
+      debugPrint('Pull sync offline fallback: $e');
+    }
+
     _products = await _repository.getAllProducts();
 
-    // Corrected SQL aggregation to prevent double-counting
-    // Adds stock arriving from outside (IN/Increase) and subtracts stock leaving (OUT/Decrease)
-    // Completely ignores internal location-to-location TRANSFERs.
     final db = await DBHelper.instance.database;
     final stockRows = await db.rawQuery('''
       SELECT product_id,
@@ -91,7 +95,6 @@ class ProductViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Lookup Barcode via API
   Future<dynamic> lookupBarcode(String barcode) async {
     try {
       return await _repository.lookupBarcodeAPI(barcode);
@@ -103,16 +106,28 @@ class ProductViewModel extends ChangeNotifier {
     }
   }
 
-  // Save Product and push to sync
   Future<void> addProduct(ProductModel product) async {
     _isLoading = true;
     notifyListeners();
 
     await _repository.saveProduct(product);
+    
+    // Trigger background sync upload
+    _syncService.syncPendingChanges();
+
     await loadProducts();
 
-    // Trigger sync in background
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> updateProduct(ProductModel product) async {
+    _isLoading = true;
+    notifyListeners();
+
+    await _repository.updateProduct(product);
     _syncService.syncPendingChanges();
+    await loadProducts();
 
     _isLoading = false;
     notifyListeners();

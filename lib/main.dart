@@ -42,7 +42,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        // ADDED: Inject TTS/STT Service so screens can use it
+        // Inject TTS/STT Service so screens can use it
         Provider(create: (_) => TtsSttService()), 
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => DashboardViewModel()),

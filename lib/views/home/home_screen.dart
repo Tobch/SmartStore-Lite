@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/dashboard_viewmodel.dart';
 import '../../viewmodels/product_viewmodel.dart';
 import '../../viewmodels/stock_movement_viewmodel.dart';
@@ -12,9 +11,6 @@ import '../movements/movement_history_screen.dart';
 import '../reports/reports_screen.dart';
 import '../settings/settings_screen.dart';
 
-/// Main shell screen that provides [BottomNavigationBar] navigation
-/// between the app's primary sections. Tabs are role-aware:
-/// managers see Reports, staff do not.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -28,24 +24,24 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Pre-load movement history and sync pending changes
-      context.read<StockMovementViewModel>().loadMovements();
-      SyncService().syncPendingChanges().then((_) {
-        if (mounted) {
-          context.read<DashboardViewModel>().loadDashboardMetrics();
-        }
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final syncService = SyncService();
+
+      await syncService.startRealtimeSync();
+
+      if (mounted) {
+        context.read<StockMovementViewModel>().loadMovements();
+        context.read<DashboardViewModel>().loadDashboardMetrics();
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final authVM = context.watch<AuthViewModel>();
-    final bool isManager =
-        authVM.currentUser?.role.toLowerCase() == 'manager';
+    // Overriding to true so the Reports tab is always visible for testing.
+    // Change back to: authVM.currentUser?.role.toLowerCase() == 'manager' for production.
+    final bool isManager = true;
 
-    // Build the list of tab screens based on role
     final List<Widget> screens = [
       const DashboardScreen(),
       const ProductResponsiveWrapper(),
@@ -54,7 +50,6 @@ class _HomeScreenState extends State<HomeScreen> {
       const SettingsScreen(),
     ];
 
-    // Build matching navigation items
     final List<BottomNavigationBarItem> navItems = [
       const BottomNavigationBarItem(
         icon: Icon(Icons.dashboard),
@@ -79,7 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
 
-    // Clamp index in case role changes mid-session
     if (_currentIndex >= screens.length) {
       _currentIndex = 0;
     }
@@ -93,7 +87,6 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() => _currentIndex = index);
-          // Auto-refresh respective viewmodels on tab switch
           if (index == 0) {
             context.read<DashboardViewModel>().loadDashboardMetrics();
           } else if (index == 1) {

@@ -4,6 +4,7 @@ import '../../viewmodels/product_viewmodel.dart';
 import '../../data/repositories/location_repository.dart';
 import '../../data/repositories/movement_repository.dart';
 import '../../data/models/location_model.dart';
+import 'product_edit_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final bool isEmbedded;
@@ -62,7 +63,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     return Scaffold(
-      appBar: widget.isEmbedded ? null : AppBar(title: Text(product.name)),
+      appBar: widget.isEmbedded ? null : AppBar(
+        title: Text(product.name),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProductEditScreen(product: product),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
