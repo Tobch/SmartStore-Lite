@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import '../../viewmodels/dashboard_viewmodel.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/product_viewmodel.dart';
-import '../../viewmodels/stock_movement_viewmodel.dart';
 import '../../core/services/sync_service.dart';
+import '../movements/movement_history_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -21,7 +21,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DashboardViewModel>().loadDashboardMetrics();
-      // Attempt background sync on screen load
       SyncService().syncPendingChanges().then((_) {
         if (mounted) context.read<DashboardViewModel>().loadDashboardMetrics();
       });
@@ -40,6 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         content: Text(count > 0 
             ? 'Successfully synced $count changes to Firebase!' 
             : 'All changes are already up to date.'),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -48,18 +48,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final dashboardVM = context.watch<DashboardViewModel>();
     final authVM = context.watch<AuthViewModel>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.sync),
+            icon: const Icon(Icons.sync_rounded),
             tooltip: 'Sync Now',
             onPressed: _isSyncing ? null : _manualSync,
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout_rounded),
             tooltip: 'Logout',
             onPressed: () async {
               await authVM.logout();
@@ -69,8 +70,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        icon: const Icon(Icons.add),
-        label: const Text('New Movement'),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('New Movement', style: TextStyle(fontWeight: FontWeight.bold)),
         onPressed: () => Navigator.pushNamed(context, '/add_movement'),
       ),
       body: dashboardVM.isLoading
@@ -82,53 +83,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Sync Status Indicator with tap-to-sync
-                    _buildSyncStatusCard(context, dashboardVM),
+                    _buildSyncStatusCard(context, dashboardVM, isDark),
                     const SizedBox(height: 24),
                     
-                    // Metrics Grid (Responsive Wrap)
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      alignment: WrapAlignment.spaceBetween,
+                    // Hero Metric Card (Full Width)
+                    _buildGradientCard(
+                      context: context,
+                      title: 'Total Asset Value',
+                      value: 'EGP ${dashboardVM.totalStockValue.toStringAsFixed(2)}',
+                      icon: Icons.account_balance_wallet_rounded,
+                      colors: [const Color(0xFF1976D2), const Color(0xFF0D47A1)], // Enterprise Blues
+                      onTap: () {
+                        context.read<ProductViewModel>().setLowStockFilter(false);
+                        Navigator.pushNamed(context, '/products');
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Secondary Metrics (Half Width)
+                    Row(
                       children: [
-                        _buildMetricCard(
-                          context,
-                          title: 'Total Stock Value',
-                          value: 'EGP ${dashboardVM.totalStockValue.toStringAsFixed(2)}',
-                          icon: Icons.account_balance_wallet,
-                          color: Theme.of(context).colorScheme.primary,
-                          onTap: () {
-                            context.read<ProductViewModel>().setLowStockFilter(false);
-                            Navigator.pushNamed(context, '/products');
-                          },
+                        Expanded(
+                          child: _buildGradientCard(
+                            context: context,
+                            title: 'Low Stock Alerts',
+                            value: '${dashboardVM.lowStockCount}',
+                            icon: Icons.warning_amber_rounded,
+                            colors: [const Color(0xFFEF5350), const Color(0xFFC62828)], // Alert Reds
+                            onTap: () {
+                              context.read<ProductViewModel>().setLowStockFilter(true);
+                              Navigator.pushNamed(context, '/products');
+                            },
+                          ),
                         ),
-                        _buildMetricCard(
-                          context,
-                          title: 'Low-Stock Products',
-                          value: '${dashboardVM.lowStockCount}',
-                          icon: Icons.warning_amber_rounded,
-                          color: Theme.of(context).colorScheme.error,
-                          onTap: () {
-                            // Filter products list to only show low-stock items
-                            context.read<ProductViewModel>().setLowStockFilter(true);
-                            Navigator.pushNamed(context, '/products');
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildGradientCard(
+                            context: context,
+                            title: "Today's Volume",
+                            value: '${dashboardVM.todaysMovements}',
+                            icon: Icons.swap_horiz_rounded,
+                            colors: [const Color(0xFF26A69A), const Color(0xFF00695C)], // Success Teals
+                            onTap: () {
+                            Navigator.push(
+                              context, 
+                              MaterialPageRoute(builder: (context) => const MovementHistoryScreen(showOnlyToday: true))
+                            );
                           },
-                        ),
-                        _buildMetricCard(
-                          context,
-                          title: "Today's Movements",
-                          value: '${dashboardVM.todaysMovements}',
-                          icon: Icons.swap_horiz,
-                          color: Theme.of(context).colorScheme.secondary,
-                          onTap: () {
-                            context.read<StockMovementViewModel>().loadMovements();
-                            Navigator.pushNamed(context, '/movement_history');
-                          },
+                          ),
                         ),
                       ],
                     ),
@@ -139,61 +145,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSyncStatusCard(BuildContext context, DashboardViewModel vm) {
+  Widget _buildSyncStatusCard(BuildContext context, DashboardViewModel vm, bool isDark) {
     bool isPending = vm.pendingSyncCount > 0;
-    return Card(
-      color: isPending ? Colors.orange.shade100 : Colors.green.shade100,
+    
+    Color bgColor = isPending 
+        ? (isDark ? Colors.orange.shade900.withOpacity(0.2) : Colors.orange.shade50)
+        : (isDark ? Colors.green.shade900.withOpacity(0.2) : Colors.green.shade50);
+        
+    Color borderColor = isPending ? Colors.orange.shade300 : Colors.green.shade300;
+    Color textColor = isPending 
+        ? (isDark ? Colors.orange.shade200 : Colors.orange.shade900)
+        : (isDark ? Colors.green.shade200 : Colors.green.shade900);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor.withOpacity(0.5), width: 1.5),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         onTap: _isSyncing ? null : _manualSync,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           child: Row(
             children: [
               _isSyncing
-                  ? const SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: CircularProgressIndicator(strokeWidth: 2.5),
-                    )
-                  : Icon(
-                      isPending ? Icons.sync_problem : Icons.cloud_done,
-                      color: isPending ? Colors.orange.shade800 : Colors.green.shade800,
-                      size: 28,
-                    ),
-              const SizedBox(width: 16),
+                  ? SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 3, color: textColor))
+                  : Icon(isPending ? Icons.sync_problem_rounded : Icons.cloud_done_rounded, color: textColor, size: 32),
+              const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _isSyncing ? 'Syncing with Firebase...' : 'Sync Status: ${vm.syncStatus}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: isPending ? Colors.orange.shade900 : Colors.green.shade900,
-                      ),
+                      _isSyncing ? 'Synchronizing Data...' : 'Sync Status: ${vm.syncStatus}',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       isPending
-                          ? '${vm.pendingSyncCount} changes waiting • Tap to upload now'
-                          : 'All changes synced with cloud Firestore',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isPending ? Colors.orange.shade800 : Colors.green.shade800,
-                      ),
+                          ? '${vm.pendingSyncCount} pending operations • Tap to push'
+                          : 'System is fully synchronized with Cloud Firestore',
+                      style: TextStyle(fontSize: 13, color: textColor.withOpacity(0.8), height: 1.2),
                     ),
                   ],
                 ),
               ),
-              if (isPending && !_isSyncing)
-                IconButton(
-                  icon: const Icon(Icons.cloud_upload),
-                  color: Colors.orange.shade900,
-                  tooltip: 'Upload now',
-                  onPressed: _manualSync,
-                ),
             ],
           ),
         ),
@@ -201,40 +199,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildMetricCard(
-    BuildContext context, {
+  Widget _buildGradientCard({
+    required BuildContext context,
     required String title,
     required String value,
     required IconData icon,
-    required Color color,
-    VoidCallback? onTap,
+    required List<Color> colors,
+    required VoidCallback onTap,
   }) {
-    double width = MediaQuery.of(context).size.width > 600 
-      ? (MediaQuery.of(context).size.width / 3) - 24 
-      : (MediaQuery.of(context).size.width / 2) - 24;
-
-    return SizedBox(
-      width: width,
-      child: Card(
-        clipBehavior: Clip.antiAlias,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colors.last.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
         child: InkWell(
+          borderRadius: BorderRadius.circular(20),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, size: 32, color: color),
-                const SizedBox(height: 16),
-                Text(title, style: Theme.of(context).textTheme.titleSmall),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                      child: Icon(icon, color: Colors.white, size: 28),
+                    ),
+                    const Icon(Icons.chevron_right_rounded, color: Colors.white54),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Text(title, style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    value, 
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                  ),
+                  child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

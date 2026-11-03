@@ -207,7 +207,6 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
 
       ProductModel? foundProduct;
       try {
-        // FIXED: Changed from vm.products to vm.filteredProducts
         foundProduct = vm.filteredProducts.firstWhere(
           (p) => p.name.toLowerCase().contains(targetProduct),
         );
@@ -216,8 +215,9 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
       }
 
       if (foundProduct != null) {
-        int stock = vm.getProductStock(foundProduct.id);
-        context.read<TtsSttService>().speak('There are $stock ${foundProduct.name} in the warehouse.');
+        int totalStock = vm.getProductStock(foundProduct.id);
+        // Accurately announces total stock across all storage facilities
+        context.read<TtsSttService>().speak('There are a total of $totalStock ${foundProduct.name} across all locations.');
       } else {
         context.read<TtsSttService>().speak('I could not find $targetProduct in the catalog.');
       }
