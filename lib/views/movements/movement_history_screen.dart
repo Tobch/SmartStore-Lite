@@ -4,7 +4,13 @@ import '../../viewmodels/stock_movement_viewmodel.dart';
 
 class MovementHistoryScreen extends StatefulWidget {
   final String? productId;
-  const MovementHistoryScreen({super.key, this.productId});
+  final bool showOnlyToday; // Flag to trigger the today filter
+
+  const MovementHistoryScreen({
+    super.key, 
+    this.productId, 
+    this.showOnlyToday = false,
+  });
 
   @override
   State<MovementHistoryScreen> createState() => _MovementHistoryScreenState();
@@ -15,7 +21,10 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<StockMovementViewModel>().loadMovements(widget.productId);
+      context.read<StockMovementViewModel>().loadMovements(
+        productId: widget.productId, 
+        filterToday: widget.showOnlyToday,
+      );
     });
   }
 
@@ -25,17 +34,24 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
     final movements = movementVM.movements;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Stock Movement History')),
+      appBar: AppBar(
+        title: Text(widget.showOnlyToday ? "Today's Movements" : 'Stock Movement History'),
+      ),
       body: RefreshIndicator(
-        onRefresh: () async => context.read<StockMovementViewModel>().loadMovements(widget.productId),
+        onRefresh: () async => context.read<StockMovementViewModel>().loadMovements(
+          productId: widget.productId, 
+          filterToday: widget.showOnlyToday,
+        ),
         child: movementVM.isLoading
             ? const Center(child: CircularProgressIndicator())
             : movements.isEmpty
-                ? const Center(
+                ? Center(
                     child: Padding(
-                      padding: EdgeInsets.all(24.0),
+                      padding: const EdgeInsets.all(24.0),
                       child: Text(
-                        'No movement records found.\nUse "Record Stock Movement" to log IN, OUT, or TRANSFER.',
+                        widget.showOnlyToday 
+                            ? 'No movements recorded today.' 
+                            : 'No movement records found.\nUse "Record Stock Movement" to log IN, OUT, or TRANSFER.',
                         textAlign: TextAlign.center,
                       ),
                     ),

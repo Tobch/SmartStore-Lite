@@ -7,7 +7,6 @@ import 'package:smartstore_lite/viewmodels/product_viewmodel.dart';
 import 'package:smartstore_lite/viewmodels/stock_movement_viewmodel.dart';
 import 'package:smartstore_lite/viewmodels/reports_viewmodel.dart';
 import 'package:smartstore_lite/viewmodels/settings_viewmodel.dart';
-import 'package:smartstore_lite/views/splash_auth/login_screen.dart';
 
 void main() {
   // Ensure Flutter binding is initialized for tests

@@ -10,35 +10,23 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # State Management
   provider: ^6.1.2
-
-  # HTTP Client & Interceptors
   dio: ^5.4.3+1
-
-  # Firebase Suite (Free Spark Plan)
   firebase_core: ^3.15.2
   firebase_auth: ^5.1.0
   cloud_firestore: ^5.0.1
-
-  # Local Database Storage & Encryption
   sqflite_sqlcipher: ^3.0.3
   path_provider: ^2.1.3
   path: ^1.9.0
-
-  # Voice Recognition & Text-to-Speech
   flutter_tts: ^4.0.2
   speech_to_text: ^7.0.0
-
-  # Notifications & Local Storage
   flutter_local_notifications: ^17.1.2
   shared_preferences: ^2.2.3
-
-  # Charts, CSV & Utilities
   fl_chart: ^0.68.0
   csv: ^6.0.0
   intl: ^0.19.0
   uuid: ^4.4.0
+  lottie: ^3.1.2 # ADDED: For enterprise splash animation
 
 dev_dependencies:
   flutter_test:
@@ -46,9 +34,18 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   mockito: ^5.4.4
   build_runner: ^2.4.9
+  flutter_launcher_icons: ^0.13.1 # ADDED: To generate unique app icon
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#0D47A1"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
 
 flutter:
   uses-material-design: true
-
   assets:
     - assets/images/
+    - assets/animations/ # ADDED: Directory for lottie JSON files

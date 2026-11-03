@@ -41,8 +41,8 @@ class StockMovementViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Loads full movement history with product and location names
-  Future<void> loadMovements([String? productId]) async {
+  // Loads full movement history with product and location names
+  Future<void> loadMovements({String? productId, bool filterToday = false}) async {
     _isLoading = true;
     notifyListeners();
 
@@ -57,15 +57,24 @@ class StockMovementViewModel extends ChangeNotifier {
       LEFT JOIN locations fl ON s.from_location_id = fl.id
       LEFT JOIN locations tl ON s.to_location_id = tl.id
       LEFT JOIN users u ON s.user_id = u.id
+      WHERE 1=1
     ''';
     
-    // FIXED: Explicitly declared as List<dynamic> to resolve "Undefined class List" error
     List<dynamic> args = [];
 
     if (productId != null) {
-      query += ' WHERE s.product_id = ?';
+      query += ' AND s.product_id = ?';
       args.add(productId);
     }
+    
+    // ADDED: Filter logic for 'Today's Movements'
+    if (filterToday) {
+      // Get current date string in UTC (matches SQLite datetime format)
+      String today = DateTime.now().toUtc().toIso8601String().substring(0, 10);
+      query += " AND date(s.timestamp) = date(?)";
+      args.add(today);
+    }
+    
     query += ' ORDER BY s.timestamp DESC';
 
     _movements = await db.rawQuery(query, args);
