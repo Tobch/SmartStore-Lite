@@ -32,15 +32,40 @@ Rather than simply overwriting stock numbers, SmartStore Lite utilizes a **Ledge
 ---
 
 ## 🏗️ Architecture Highlight
+**SmartStore Lite** is built upon an **Offline-First MVVM (Model-View-ViewModel)** architectural pattern. It guarantees zero data loss during network disconnections by routing all writes through a secure local ledger before synchronizing with **cloud Firestore**.
 
 ```mermaid
-graph TD;
-    A[User UI / Voice Input] --> B(ViewModels / Provider);
-    B --> C{Network Available?};
-    C -- Yes --> D[Dio Interceptors / API];
-    C -- No --> E[SQLite Local Ledger];
-    D --> F[Firebase Firestore Sync];
-    E --> F;
+graph TD
+    %% Presentation & Interaction Layer
+    subgraph Presentation [Presentation Layer]
+        UI[User Interface and Voice] -->|User Input| VM[ViewModels Provider]
+        VM -->|State Updates| UI
+    end
+
+    %% Business & Services Layer
+    subgraph Services [Core Services Layer]
+        VM --> TTS[Voice Control Service]
+        VM --> NS[Notification Service]
+        VM --> Sync[Background Sync Engine]
+    end
+
+    %% Data Storage & Ledger Engine
+    subgraph Storage [Local Storage Layer]
+        VM -->|Read Write Inventory| Ledger[Stock Ledger Engine]
+        Ledger --> DB[(Encrypted SQLite DB)]
+        Ledger --> Queue[(Pending Changes Queue)]
+    end
+
+    %% Network & Cloud Synchronization
+    subgraph Cloud [Cloud and Remote Services]
+        Sync --> Net{Network Available?}
+        Net -- Yes --> API[Dio API Client]
+        Net -- Yes --> FS[(Cloud Firestore)]
+        Net -- No --> Offline[Save Locally to Queue and DB]
+        Queue -->|Push on Reconnection| FS
+        FS -->|Rejection or Conflict| Sync
+        Sync -->|Trigger Alert| NS
+    end
 ```
 
 ---
