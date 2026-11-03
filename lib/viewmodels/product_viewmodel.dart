@@ -32,12 +32,13 @@ class ProductViewModel extends ChangeNotifier {
     
     _products = await _repository.getAllProducts();
 
-    // Query ledger stock for all products
+    // Corrected SQL aggregation to prevent double-counting
+    // Adds stock arriving from outside (IN/Increase) and subtracts stock leaving (OUT/Decrease)
+    // Completely ignores internal location-to-location TRANSFERs.
     final db = await DBHelper.instance.database;
     final stockRows = await db.rawQuery('''
       SELECT product_id,
-        COALESCE(SUM(CASE WHEN to_location_id IS NOT NULL AND from_location_id IS NULL THEN quantity ELSE 0 END), 0) +
-        COALESCE(SUM(CASE WHEN movement_type = 'IN' THEN quantity ELSE 0 END), 0) -
+        COALESCE(SUM(CASE WHEN from_location_id IS NULL AND to_location_id IS NOT NULL THEN quantity ELSE 0 END), 0) -
         COALESCE(SUM(CASE WHEN from_location_id IS NOT NULL AND to_location_id IS NULL THEN quantity ELSE 0 END), 0) as total_stock
       FROM stock_movements
       GROUP BY product_id

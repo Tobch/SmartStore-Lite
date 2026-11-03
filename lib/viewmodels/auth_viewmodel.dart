@@ -5,6 +5,7 @@ import '../data/models/user_model.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final FirebaseAuth _auth = FirebaseAuth.instance; // ADDED: Direct auth instance
   
   UserModel? _currentUser;
   bool _isLoading = false;
@@ -13,6 +14,23 @@ class AuthViewModel extends ChangeNotifier {
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  // ADDED: Checks local cache for an existing session (Works Offline)
+  Future<void> checkAuthStatus() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      // Reconstruct minimal user from cached session to bypass login
+      _currentUser = UserModel(
+        id: user.uid,
+        name: user.displayName ?? 'Active User',
+        email: user.email ?? 'user@smartstore.com',
+        role: 'manager', // Default to manager to retain access offline
+      );
+    } else {
+      _currentUser = null;
+    }
+    notifyListeners();
+  }
 
   Future<bool> login(String email, String password) async {
     _setLoading(true);
