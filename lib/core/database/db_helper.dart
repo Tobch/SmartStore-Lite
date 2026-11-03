@@ -1,11 +1,11 @@
 import 'package:path/path.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:flutter/foundation.dart';
 
 class DBHelper {
   static final DBHelper instance = DBHelper._init();
   static Database? _database;
   
-  // Hardcoded key for academic demo purposes. In production, use FlutterSecureStorage.
   final String _dbPassword = 'smartstore_secure_key_2026';
 
   DBHelper._init();
@@ -20,15 +20,41 @@ class DBHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
-      password: _dbPassword,
-      version: 1,
-      onCreate: _createDB,
-      onConfigure: (db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
+    try {
+      return await openDatabase(
+        path,
+        password: _dbPassword,
+        version: 3,
+        onCreate: _createDB,
+        onUpgrade: _upgradeDB,
+        onConfigure: (db) async {
+          await db.execute('PRAGMA foreign_keys = ON');
+        },
+      );
+    } catch (e, stackTrace) {
+      debugPrint('CRITICAL: Database initialization failed: $e\n$stackTrace');
+      rethrow;
+    }
+  }
+
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      final columns = await db.rawQuery("PRAGMA table_info(users)");
+      final hasDefaultLocationId = columns.any((column) => column['name'] == 'default_location_id');
+
+      if (!hasDefaultLocationId) {
+        await db.execute('ALTER TABLE users ADD COLUMN default_location_id TEXT');
       }
-    );
+    }
+
+    if (oldVersion < 3) {
+      final productColumns = await db.rawQuery("PRAGMA table_info(products)");
+      final hasSyncStatus = productColumns.any((column) => column['name'] == 'sync_status');
+
+      if (!hasSyncStatus) {
+        await db.execute('ALTER TABLE products ADD COLUMN sync_status TEXT CHECK(sync_status IN (\'PENDING\', \'SYNCED\', \'CONFLICT\')) DEFAULT \'PENDING\'');
+      }
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -62,7 +88,8 @@ class DBHelper {
         price REAL NOT NULL CHECK(price > 0),
         min_stock_threshold INTEGER DEFAULT 5,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        sync_status TEXT CHECK(sync_status IN ('PENDING', 'SYNCED', 'CONFLICT')) DEFAULT 'PENDING'
       )
     ''');
 

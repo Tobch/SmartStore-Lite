@@ -81,6 +81,28 @@ class ProductRepository {
     });
   }
 
+  Future<void> updateProduct(ProductModel product) async {
+    final db = await _dbHelper.database;
+    await db.transaction((txn) async {
+      await txn.update(
+        'products',
+        product.toMap(),
+        where: 'id = ?',
+        whereArgs: [product.id],
+      );
+
+      await txn.insert('pending_changes', {
+        'id': const Uuid().v4(),
+        'table_name': 'products',
+        'record_id': product.id,
+        'action_type': 'UPDATE',
+        'payload': jsonEncode(product.toMap()),
+        'created_at': DateTime.now().toIso8601String(),
+        'retry_count': 0,
+      });
+    });
+  }
+
   // Fetch all products stored locally
   Future<List<ProductModel>> getAllProducts() async {
     final db = await _dbHelper.database;

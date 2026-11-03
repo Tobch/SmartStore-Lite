@@ -125,11 +125,20 @@ class ReportsViewModel extends ChangeNotifier {
       }
 
       String csvData = const ListToCsvConverter().convert(rows);
-      
-      final directory = await getApplicationDocumentsDirectory();
+
+      Directory directory;
+      if (Platform.isAndroid) {
+        directory = Directory('/storage/emulated/0/Download');
+        if (!await directory.exists()) {
+          directory = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+        }
+      } else {
+        directory = await getApplicationDocumentsDirectory();
+      }
+
       final file = File('${directory.path}/movement_report_${DateTime.now().millisecondsSinceEpoch}.csv');
       await file.writeAsString(csvData);
-      
+
       return file.path;
     } catch (e) {
       _errorMessage = 'Export failed: $e';

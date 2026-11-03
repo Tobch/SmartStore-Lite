@@ -6,7 +6,8 @@ import '../../core/utils/barcode_validator.dart';
 import '../../core/network/interceptors/error_interceptor.dart';
 
 class ProductEditScreen extends StatefulWidget {
-  const ProductEditScreen({super.key});
+  final ProductModel? product;
+  const ProductEditScreen({super.key, this.product});
 
   @override
   State<ProductEditScreen> createState() => _ProductEditScreenState();
@@ -24,6 +25,34 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
   final _thresholdController = TextEditingController(text: '5');
 
   bool _isLookingUp = false;
+  bool get _isEditing => widget.product != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      final p = widget.product!;
+      _barcodeController.text = p.barcode;
+      _nameController.text = p.name;
+      _brandController.text = p.brand ?? '';
+      _categoryController.text = p.category;
+      _imageUrlController.text = p.imageUrl ?? '';
+      _priceController.text = p.price.toString();
+      _thresholdController.text = p.minStockThreshold.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _barcodeController.dispose();
+    _nameController.dispose();
+    _brandController.dispose();
+    _categoryController.dispose();
+    _imageUrlController.dispose();
+    _priceController.dispose();
+    _thresholdController.dispose();
+    super.dispose();
+  }
 
   Future<void> _lookupBarcode() async {
     final barcode = _barcodeController.text.trim();
@@ -73,6 +102,7 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final product = ProductModel(
+      id: _isEditing ? widget.product!.id : null,
       barcode: _barcodeController.text.trim(),
       name: _nameController.text.trim(),
       brand: _brandController.text.trim(),
@@ -80,7 +110,20 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
       imageUrl: _imageUrlController.text.trim(),
       price: double.parse(_priceController.text.trim()),
       minStockThreshold: int.parse(_thresholdController.text.trim()),
+      createdAt: _isEditing ? widget.product!.createdAt : null,
+      updatedAt: DateTime.now(),
     );
+
+    if (_isEditing) {
+      await context.read<ProductViewModel>().updateProduct(product);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product updated and queued for sync.')),
+        );
+        Navigator.pop(context);
+      }
+      return;
+    }
 
     await context.read<ProductViewModel>().addProduct(product);
     
@@ -88,14 +131,14 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Product saved and queued for sync.')),
       );
-      Navigator.pop(context); // Return to Catalog
+      Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Product')),
+      appBar: AppBar(title: Text(_isEditing ? 'Edit Product' : 'Add Product')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -194,9 +237,9 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
                 
                 ElevatedButton(
                   onPressed: _saveProduct,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: Text('SAVE PRODUCT', style: TextStyle(fontSize: 16)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: Text(_isEditing ? 'UPDATE PRODUCT' : 'SAVE PRODUCT', style: const TextStyle(fontSize: 16)),
                   ),
                 ),
               ],

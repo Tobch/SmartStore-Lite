@@ -67,6 +67,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 width: 250, 
                 height: 250,
                 fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  // Safe fallback if the release bundle misses the json asset
+                  return Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.inventory_2_rounded, size: 80, color: Theme.of(context).colorScheme.primary),
+                  );
+                },
               ),
               const SizedBox(height: 32),
               Text(
