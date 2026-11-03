@@ -37,40 +37,34 @@ Rather than simply overwriting stock numbers, SmartStore Lite utilizes a **Ledge
 ```mermaid
 graph TD
     %% Presentation & Interaction Layer
-    subgraph Presentation Layer ["Presentation Layer (Flutter Views)"]
-        UI[User Interface / Views] -->|Voice / Touch Input| VM[ViewModels (Provider)]
+    subgraph Presentation [Presentation Layer]
+        UI[User Interface and Voice] -->|User Input| VM[ViewModels Provider]
         VM -->|State Updates| UI
     end
 
     %% Business & Services Layer
-    subgraph Services Layer ["Core Services & Interceptors"]
-        VM --> TTS[TtsSttService / Voice Control]
-        VM --> NS[NotificationService / Low-Stock Alerts]
-        VM --> Sync[SyncService / Background Sync Engine]
+    subgraph Services [Core Services Layer]
+        VM --> TTS[Voice Control Service]
+        VM --> NS[Notification Service]
+        VM --> Sync[Background Sync Engine]
     end
 
     %% Data Storage & Ledger Engine
-    subgraph Storage Layer ["Local Storage (SQLite + SQLCipher)"]
-        VM -->|Read / Write Inventory| Ledger[Ledger-Based Stock Engine]
-        Ledger --> DB[(Encrypted SQLite Database)]
+    subgraph Storage [Local Storage Layer]
+        VM -->|Read Write Inventory| Ledger[Stock Ledger Engine]
+        Ledger --> DB[(Encrypted SQLite DB)]
         Ledger --> Queue[(Pending Changes Queue)]
     end
 
     %% Network & Cloud Synchronization
-    subgraph Cloud Layer ["Cloud & Remote Services"]
-        Sync -->|Check Connectivity| Net{Network Available?}
-        Net -- Yes --> API[Dio API Client / Barcode Lookup]
-        Net -- Yes --> FS[(Cloud Firestore Database)]
-        Queue -->|Push Queued Operations| FS
-        FS -->|Conflict / Permission Rejection| Sync
+    subgraph Cloud [Cloud and Remote Services]
+        Sync -->|Connectivity Check| Net{Network Active?}
+        Net -- Yes --> API[Dio API Client]
+        Net -- Yes --> FS[(Cloud Firestore)]
+        Queue -->|Push Operations| FS
+        FS -->|Rejection or Conflict| Sync
         Sync -->|Trigger Alert| NS
     end
-
-    %% Styling linkages
-    style UI fill:#1976D2,stroke:#fff,stroke-width:2px,color:#fff
-    style DB fill:#388E3C,stroke:#fff,stroke-width:2px,color:#fff
-    style FS fill:#F57C00,stroke:#fff,stroke-width:2px,color:#fff
-    style Sync fill:#7B1FA2,stroke:#fff,stroke-width:2px,color:#fff
 ```
 
 ---
