@@ -58,10 +58,11 @@ graph TD
 
     %% Network & Cloud Synchronization
     subgraph Cloud [Cloud and Remote Services]
-        Sync -->|Connectivity Check| Net{Network Active?}
+        Sync -->|Connectivity Check| Net{Network Available?}
         Net -- Yes --> API[Dio API Client]
         Net -- Yes --> FS[(Cloud Firestore)]
-        Queue -->|Push Operations| FS
+        Net -- No -->|Offline Mode| Queue
+        Queue -->|Store Locally| DB
         FS -->|Rejection or Conflict| Sync
         Sync -->|Trigger Alert| NS
     end
